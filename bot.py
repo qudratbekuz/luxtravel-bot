@@ -13,7 +13,7 @@ user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Assalomu alaykum!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
-                                    "1. Pasport raqami\n2. Millat (UZB)\n3. CAPTCHA kod (keyin rasmni yuboramiz)")
+                                    "1. Pasport seriyasini\n2. Millat (masalan: UZB)\n3. CAPTCHA kod (keyin rasmni yuboramiz)")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
@@ -25,7 +25,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     stage = len(user_data[chat_id])
 
     if stage == 0:
-        user_data[chat_id]['passport_number'] = text
+        user_data[chat_id]['passport_series'] = text
         await update.message.reply_text("🌍 Millatingiz kodini yuboring (masalan: UZB):")
     elif stage == 1:
         user_data[chat_id]['nationality'] = text
@@ -42,23 +42,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
-    passport_number = user_data[chat_id].get('passport_number')
+    passport_series = user_data[chat_id].get('passport_series')
     nationality = user_data[chat_id].get('nationality')
     captcha = user_data[chat_id].get('captcha')
 
     # Send the data to the MOFA site
     data = {
-        'FirstValue': passport_number,
+        'FirstValue': passport_series,
         'SecondValue': '',
         'Nationality': nationality,
         'Captcha': captcha,
     }
 
     response = requests.post(MOFA_URL, data=data)
-    # Handle the response (assuming a simple success/failure check here)
+    
     if response.status_code == 200:
         # Parse the response if it contains information on the visa status
-        await update.message.reply_text(f"Viza holati: muvaffaqiyatli tekshirildi!")
+        await update.message.reply_text(f"Tezda vizangizni tekshirganimizdan so‘ng, viza holati: Muvaffaqiyatli tekshirildi!")
     else:
         await update.message.reply_text(f"Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
 
