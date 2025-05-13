@@ -5,14 +5,14 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # Bu yerni to'ldirishimiz kerak
+MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # Bu URL ni to‘g‘rilash kerak
 
 logging.basicConfig(level=logging.INFO)
 
 user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Assalomu alaykum!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
+    await update.message.reply_text("Assalomu alaykum! yaxshimisiz Saudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
                                     "1. Pasport raqami\n2. Millat (UZB)\n3. CAPTCHA kod (keyin rasmni yuboramiz)")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
