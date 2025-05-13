@@ -1,7 +1,7 @@
 import os
 import logging
 import requests
-from telegram import Update, InputFile
+from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -37,7 +37,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif stage == 2:
         user_data[chat_id]['captcha'] = text
         await update.message.reply_text("✅ Ma'lumotlaringiz qabul qilindi. Tekshiruvga yuboriladi.")
-        # Now, we'll send the information to MOFA and check the visa status.
         await check_visa_status(update, context)
 
 async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -57,8 +56,9 @@ async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = requests.post(MOFA_URL, data=data)
     
     if response.status_code == 200:
-        # Parse the response if it contains information on the visa status
-        await update.message.reply_text(f"Tezda vizangizni tekshirganimizdan so‘ng, viza holati: Muvaffaqiyatli tekshirildi!")
+        # Assuming response contains information on the visa status
+        visa_status = response.text  # You will need to parse the actual response
+        await update.message.reply_text(f"Viza holati: {visa_status}")  # Send the visa status to the user
     else:
         await update.message.reply_text(f"Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
 
