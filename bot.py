@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Assalomu alaykum!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
+    await update.message.reply_text("Assalomu alaykum! SALOM \nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
                                     "1. Pasport raqami\n2. Millat (UZB)\n3. CAPTCHA kod (keyin rasmni yuboramiz)")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
