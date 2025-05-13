@@ -1,93 +1,65 @@
 import os
 import logging
-import requests
-from telegram import Update, InputFile
+import youtube_dl
+import instaloader
+from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # URLni tekshirish
-
+# Set logging
 logging.basicConfig(level=logging.INFO)
 
-user_data = {}
-
-# Start command handler
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "salom!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
-        "1. Pasport seriyasini\n2. Millat (masalan: UZB)\n3. CAPTCHA kodi (keyin rasmni yuboramiz)"
-    )
-
-# Handle user messages (step-by-step)
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
-    text = update.message.text.strip()
-
-    if chat_id not in user_data:
-        user_data[chat_id] = {}
-
-    stage = len(user_data[chat_id])
-
-    # Step 1: Passport series
-    if stage == 0:
-        user_data[chat_id]['passport_series'] = text
-        await update.message.reply_text("🌍 Millatingiz kodini yuboring (masalan: UZB):")
-
-    # Step 2: Nationality
-    elif stage == 1:
-        user_data[chat_id]['nationality'] = text
-        # Get and send CAPTCHA image
-        captcha_image_url = get_captcha_image()
-        await update.message.reply_photo(photo=captcha_image_url)
-        await update.message.reply_text("🔐 CAPTCHA kodi (rasmdagi raqamni yozing):")
-
-    # Step 3: CAPTCHA
-    elif stage == 2:
-        user_data[chat_id]['captcha'] = text
-        await update.message.reply_text("✅ Ma'lumotlaringiz qabul qilindi. Tekshiruvga yuboriladi.")
-        # Send data to MOFA site and check visa status
-        await check_visa_status(update, context)
-
-# Check visa status by sending data to MOFA site
-async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
-    passport_series = user_data[chat_id].get('passport_series')
-    nationality = user_data[chat_id].get('nationality')
-    captcha = user_data[chat_id].get('captcha')
-
-    # Prepare data to send to MOFA
-    data = {
-        'FirstValue': passport_series,
-        'SecondValue': '',
-        'Nationality': nationality,
-        'Captcha': captcha,
+# Function to download video from YouTube
+def download_youtube_video(url):
+    ydl_opts = {
+        'outtmpl': 'downloads/%(title)s.%(ext)s',  # Save to 'downloads' directory with video title
+        'format': 'bestvideo+bestaudio/best',  # Best video and audio
     }
 
-    # Send request to MOFA
-    response = requests.post(MOFA_URL, data=data)
-    
-    if response.status_code == 200:
-        # Process and send the visa status to the user
-        visa_status = response.text  # You will need to parse the actual response if needed
-        await update.message.reply_text(f"Viza holati: {visa_status}")
-    else:
-        await update.message.reply_text(f"Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(url, download=True)
+        filename = ydl.prepare_filename(info_dict)
+    return filename
 
-# Function to get the CAPTCHA image (Placeholder for now)
-def get_captcha_image():
-    # Placeholder: Replace with real CAPTCHA fetching logic
-    captcha_url = "https://visa.mofa.gov.sa/captcha"  # Actual URL for CAPTCHA image
-    response = requests.get(captcha_url, stream=True)
-    if response.status_code == 200:
-        return InputFile(response.raw)  # Return the CAPTCHA image for Telegram
-    else:
-        return "https://via.placeholder.com/150"  # If CAPTCHA image fetch fails, use a placeholder
+# Function to download video from Instagram
+def download_instagram_video(url):
+    L = instaloader.Instaloader()
+    post = instaloader.Post.from_url(L.context, url)
+    filename = f"downloads/{post.shortcode}.mp4"
+    post.download(filename)
+    return filename
 
-# Main function to run the bot
+# Command handler for /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Assalomu alaykum! \nIltimos, video linkini yuboring (YouTube yoki Instagram):")
+
+# Handler for message (video link)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    video_url = update.message.text.strip()
+
+    if "youtube" in video_url:
+        await update.message.reply_text("YouTube video yuklanmoqda...")
+        video_file = download_youtube_video(video_url)
+        with open(video_file, 'rb') as video:
+            await update.message.reply_video(video)
+        os.remove(video_file)  # Remove the file after sending
+
+    elif "instagram" in video_url:
+        await update.message.reply_text("Instagram video yuklanmoqda...")
+        video_file = download_instagram_video(video_url)
+        with open(video_file, 'rb') as video:
+            await update.message.reply_video(video)
+        os.remove(video_file)  # Remove the file after sending
+
+    else:
+        await update.message.reply_text("Iltimos, faqat YouTube yoki Instagram video linklarini yuboring.")
+
+# Main function to start the bot
 if __name__ == '__main__':
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    bot_token = os.getenv("BOT_TOKEN")  # Enter your bot token
+    app = ApplicationBuilder().token(bot_token).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("🤖 Bot ishga tushdi...")
+    print("Bot ishga tushdi...")
     app.run_polling()
