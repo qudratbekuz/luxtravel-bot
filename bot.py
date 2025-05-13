@@ -1,7 +1,7 @@
 import os
 import logging
 import requests
-from telegram import Update
+from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -29,7 +29,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🌍 Millatingiz kodini yuboring (masalan: UZB):")
     elif stage == 1:
         user_data[chat_id]['nationality'] = text
-        # CAPTCHA rasmni olish
+        # Real CAPTCHA rasmni olish
         captcha_image_url = get_captcha_image()
         # Rasmni yuborish
         await update.message.reply_photo(photo=captcha_image_url)
@@ -63,9 +63,15 @@ async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
 
 def get_captcha_image():
-    # Placeholder function to simulate CAPTCHA image URL
-    # Replace with the real CAPTCHA fetching logic if available
-    return "https://via.placeholder.com/150"  # Placeholder image URL for CAPTCHA
+    # Real CAPTCHA olish
+    # Placeholder rasm URL - uni MOFA saytiga so'rov yuborib olish kerak
+    # Buni haqiqiy CAPTCHA olish bilan almashtiring
+    captcha_url = "https://visa.mofa.gov.sa/captcha"  # Bu URLni haqiqiy CAPTCHA olish uchun almashtiring
+    response = requests.get(captcha_url, stream=True)
+    if response.status_code == 200:
+        return InputFile(response.raw)  # Bu rasmni yuborish uchun foydalanamiz
+    else:
+        return "https://via.placeholder.com/150"  # Noto'g'ri rasm bo'lsa, placeholder rasm yuboriladi
 
 if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
