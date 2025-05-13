@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 user_data = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Assalomu alaykum! SALOM \nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
+    await update.message.reply_text("Assalomu alaykum!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
                                     "1. Pasport raqami\n2. Millat (UZB)\n3. CAPTCHA kod (keyin rasmni yuboramiz)")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -28,13 +28,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_data[chat_id]['passport_number'] = text
         await update.message.reply_text("🌍 Millatingiz kodini yuboring (masalan: UZB):")
     elif stage == 1:
-        # Millat kiritildi, keyingi bosqichga o'tamiz.
         user_data[chat_id]['nationality'] = text
         await update.message.reply_text("🔐 CAPTCHA kodi (keyin rasmni yuboramiz):")
     elif stage == 2:
-        # CAPTCHA kodini kiritgach, ma'lumotlarni yuboramiz.
         user_data[chat_id]['captcha'] = text
         await update.message.reply_text("✅ Ma'lumotlaringiz qabul qilindi. Tekshiruvga yuboriladi.")
+        # Now, we'll send the information to MOFA and check the visa status.
         await check_visa_status(update, context)
 
 async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
