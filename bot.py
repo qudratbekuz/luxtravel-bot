@@ -4,7 +4,6 @@ import requests
 from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Environment variables for bot token
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # URLni tekshirish
 
@@ -15,7 +14,7 @@ user_data = {}
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Assalomu alaykum! Va Rahmatulloh\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
+        "salom!\nSaudiya vizangizni tekshirish uchun quyidagi tartibda yuboring:\n\n"
         "1. Pasport seriyasini\n2. Millat (masalan: UZB)\n3. CAPTCHA kodi (keyin rasmni yuboramiz)"
     )
 
