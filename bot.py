@@ -1,11 +1,11 @@
 import os
 import logging
 import requests
-from telegram import Update
+from telegram import Update, InputFile
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # Bu URL ni to‘g‘rilash kerak
+MOFA_URL = "https://visa.mofa.gov.sa/visaservices/searchvisa"  # URLni tekshirish
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +29,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🌍 Millatingiz kodini yuboring (masalan: UZB):")
     elif stage == 1:
         user_data[chat_id]['nationality'] = text
-        await update.message.reply_text("🔐 CAPTCHA kodi (keyin rasmni yuboramiz):")
+        # CAPTCHA rasmni olish
+        captcha_image_url = get_captcha_image()
+        # Rasmni yuborish
+        await update.message.reply_photo(photo=captcha_image_url)
+        await update.message.reply_text("🔐 CAPTCHA kodi (rasmdagi raqamni yozing):")
     elif stage == 2:
         user_data[chat_id]['captcha'] = text
         await update.message.reply_text("✅ Ma'lumotlaringiz qabul qilindi. Tekshiruvga yuboriladi.")
@@ -57,6 +61,11 @@ async def check_visa_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Viza holati: muvaffaqiyatli tekshirildi!")
     else:
         await update.message.reply_text(f"Xatolik yuz berdi. Iltimos, qayta urinib ko'ring.")
+
+def get_captcha_image():
+    # Placeholder function to simulate CAPTCHA image URL
+    # Replace with the real CAPTCHA fetching logic if available
+    return "https://via.placeholder.com/150"  # Placeholder image URL for CAPTCHA
 
 if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
